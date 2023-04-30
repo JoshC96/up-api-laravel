@@ -12,19 +12,22 @@ class Util
      * @param array $links 
      * @return array 
      */
-    public static function getPaginationKeys(array $links): array {
+    public static function getPaginationKeys(array $links): array
+    {
         $params = [];
 
         foreach ($links as $key => $link) {
             $query = parse_url($link, PHP_URL_QUERY);
             parse_str($query, $query_params);
 
-            $params['next'] = $query_params['page']['after'] ?? null;
-            $params['prev'] = $query_params['page']['before'] ?? null;
+            foreach (['after', 'before'] as $page_key) {
+                if (isset($query_params['page'][$page_key])) {
+                    $params[$key] = $query_params['page'][$page_key];
+                }
+            }
         }
 
         return $params;
     }
-
 
 }
