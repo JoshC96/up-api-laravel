@@ -26,6 +26,7 @@
     "dependencies": {
         "date-fns": "^2.29.3",
         "openai": "^3.2.1",
+        "pinia": "^2.0.35",
         "swrv": "^1.0.3"
     }
 }
