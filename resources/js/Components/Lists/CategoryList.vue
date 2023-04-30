@@ -1,22 +1,24 @@
 <template>
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center sm:justify-center">
-            <table class="w-full text-sm border-separate border-spacing-y-2">
-                <thead class="">
+        <div class="my-6 overflow-hidden bg-white rounded-md shadow">
+            <table class="w-full text-left border-collapse">
+                <thead class="border-b">
                     <tr>
-                        <th>Name</th>
-                        <th>Parent</th>
-                        <th>Actions</th>
+                        <th class="px-5 py-3 text-sm font-medium text-gray-100 uppercase bg-indigo-800">
+                            Name
+                        </th>
+                        <th class="px-5 py-3 text-sm font-medium text-gray-100 uppercase bg-indigo-800">
+                            Parent Category
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="tr-class" v-for="category in categories" :key="category.remoteId">
-                        <td class="td-class text-center">{{ category.name }}</td>
-                        <td class="td-class text-center">{{ category.parentId }}</td>
-                        <td class="td-class text-center">
-                            <SecondaryButton>
-                                View
-                            </SecondaryButton>
+                    <tr v-for="category in categories" :key="category.remoteId" class="hover:bg-gray-200">
+                        <td class="px-6 py-4 text-lg text-gray-700 border-b">
+                            {{ category.name }}
+                        </td>
+                        <td class="px-6 py-4 text-gray-500 border-b">
+                            {{ category.parentId }}
                         </td>
                     </tr>
                 </tbody>
