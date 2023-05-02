@@ -24,13 +24,20 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //api/v1
 Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\Api\V1'], function () {
     Route::controller(TransactionController::class)->group(function () {
-        Route::get('/transactions/totalSpent', 'getSpentValueByDateRange');
+        Route::get('/transactions/total_spent', 'getSpentValueByDateRange');
+        Route::get('/transactions/new_merchants', 'getNewMerchants');
+        Route::get('/transactions/total_roundup', 'getRoundUpTotal');
+        
     });
 
     Route::apiResource('transactions', TransactionController::class);
 });
 
 Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\Api\V1'], function () {
+    Route::controller(AccountController::class)->group(function () {
+        Route::get('/accounts/net_value', 'getNetValue');
+    });
+
     Route::apiResource('accounts', AccountController::class);
 });
 
