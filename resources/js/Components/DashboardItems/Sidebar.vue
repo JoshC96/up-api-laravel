@@ -14,7 +14,7 @@
                         </path>
                     </svg>
 
-                    <span class="mx-2 text-2xl font-semibold text-white">VueBoard</span>
+                    <span class="mx-2 text-2xl font-semibold text-white">UpBank Reports</span>
                 </div>
             </div>
 

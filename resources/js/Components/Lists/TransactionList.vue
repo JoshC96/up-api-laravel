@@ -1,10 +1,10 @@
 <template>
     <div class="mt-6">
-        <h2 class="text-xl font-semibold leading-tight text-gray-700">Users</h2>
+        <h2 class="text-xl font-semibold leading-tight text-gray-700">Transactions</h2>
 
         <div class="flex flex-col mt-3 sm:flex-row">
             <div class="flex">
-                <div class="relative">
+                <!-- <div class="relative">
                     <select
                         class="block w-full h-full px-4 py-2 pr-8 leading-tight text-gray-700 bg-white border border-gray-400 rounded-l appearance-none focus:outline-none focus:bg-white focus:border-gray-500">
                         <option>5</option>
@@ -17,7 +17,7 @@
                             <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
                         </svg>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="relative">
                     <select
@@ -79,9 +79,9 @@
                         <tr v-if="transactions" v-for="transaction in transactions" :key="transaction.remoteId">
                             <td class="px-5 py-5 text-sm bg-white border-b border-gray-200">
                                 <div class="flex items-center">
-                                    <div class="flex-shrink-0 w-10 h-10">
+                                    <!-- <div class="flex-shrink-0 w-10 h-10">
                                         <img class="w-full h-full rounded-full" src="" alt="profile pic" />
-                                    </div>
+                                    </div> -->
                                     <div class="ml-3">
                                         <p class="text-gray-900 whitespace-nowrap">
                                             {{ transaction.description }}
