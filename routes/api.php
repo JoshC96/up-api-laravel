@@ -23,6 +23,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 //api/v1
 Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\Api\V1'], function () {
+    Route::controller(TransactionController::class)->group(function () {
+        Route::get('/transactions/totalSpent', 'getSpentValueByDateRange');
+    });
+
     Route::apiResource('transactions', TransactionController::class);
 });
 
