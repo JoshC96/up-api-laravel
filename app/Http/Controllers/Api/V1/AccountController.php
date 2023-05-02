@@ -9,6 +9,8 @@ use App\Http\UpApi\Transformers\AccountTransformer;
 use App\Http\UpApi\UpApi;
 use App\Http\UpApi\Util;
 use App\Models\Account;
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AccountController extends Controller
@@ -44,50 +46,23 @@ class AccountController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * @param Request $request 
+     * @return JsonResponse 
+     * @throws BindingResolutionException 
      */
-    public function create()
+    public function getNetValue(Request $request): JsonResponse
     {
-        //
+        $accounts = Account::query()
+            ->get();
+        // ->where('user_id', '=',  $request->user()->id);
+
+        $net_value = $accounts->sum('balance_base_unit_value');
+
+        return response()->json([
+            'status' => 200,
+            'net_value' => $net_value,
+            'accounts_count' => $accounts->count()
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreAccountRequest $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Account $account)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Account $account)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateAccountRequest $request, Account $account)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Account $account)
-    {
-        //
-    }
 }
