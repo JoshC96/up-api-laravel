@@ -10,7 +10,10 @@ use App\Models\Transaction;
 use App\Http\UpApi\Transformers\TransactionTransformer;
 use App\Http\UpApi\Util;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
@@ -47,51 +50,34 @@ class TransactionController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function getSpentValueByDateRange(Request $request)
     {
-        //
+        $now = Carbon::now();
+        $weekStartDate = $now->startOfWeek()->format('Y-m-d H:i');
+        $weekEndDate = $now->endOfWeek()->format('Y-m-d H:i');
+
+// var_dump($request->user());die;
+
+        $transactions = DB::table('transactions')
+            ->whereBetween('remote_created_at', [$weekStartDate, $weekEndDate])
+            ->where('description', 'not like', "%Round Up%")
+            ->where('description', 'not like', "%Transfer to%")
+            ->where('description', 'not like', "%Transfer from%");
+            // ->where('user_id', '=',  $request->user()->id);
+
+        $total_spent = $transactions->sum('amount_base_unit_value');
+
+        return response()->json([
+            'status' => 200,
+            'date_start' => $weekStartDate,
+            'date_end' => $weekEndDate,
+            'data' => $total_spent,
+            'transaction_count' => $transactions->count()
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreTransactionRequest $request)
-    {
-        //
-    }
+    
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Transaction $transaction)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Transaction $transaction)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateTransactionRequest $request, Transaction $transaction)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Transaction $transaction)
-    {
-        //
-    }
 }
