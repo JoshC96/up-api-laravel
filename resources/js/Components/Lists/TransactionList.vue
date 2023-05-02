@@ -85,6 +85,9 @@
                                     <div class="ml-3">
                                         <p class="text-gray-900 whitespace-nowrap">
                                             {{ transaction.description }}
+                                            <div class="text-sm leading-5 text-gray-500">
+                                                {{ transaction.message }}
+                                            </div>
                                         </p>
                                     </div>
                                 </div>

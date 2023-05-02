@@ -5,6 +5,7 @@ export interface Transaction {
     status: string;
     rawText: string;
     description: string;
+    message: string;
     amount: MoneyObject;
     settledAt: string;
     createdAt: string;
