@@ -145,5 +145,31 @@ class TransactionController extends Controller
         ]);
     }
 
+    /**
+     * @param Request $request 
+     * @return JsonResponse 
+     * @throws BindingResolutionException 
+     */
+    public function getTotalSumByCategory(Request $request): JsonResponse
+    {
+        $transactions = Transaction::query()
+            ->select('category_id', DB::raw('SUM(amount_base_unit_value) as total_amount'), DB::raw('COUNT(*) as transaction_count'))
+            ->groupBy('category_id')
+            ->orderBy('total_amount', 'asc')
+            ->limit(5)
+            ->get()
+            ->keyBy('category_id')
+            ->map(function ($item) {
+                return [
+                    'total_amount' => $item->total_amount,
+                    'transaction_count' => $item->transaction_count
+                ];
+            });
+
+        return response()->json([
+            'status' => 200,
+            'total_by_category' => json_decode($transactions),
+        ]);
+    }
 
 }

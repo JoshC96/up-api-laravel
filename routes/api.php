@@ -27,6 +27,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\Api\V1'], f
         Route::get('/transactions/total_spent', 'getSpentValueByDateRange');
         Route::get('/transactions/new_merchants', 'getNewMerchants');
         Route::get('/transactions/total_roundup', 'getRoundUpTotal');
+        Route::get('/transactions/total_by_category', 'getTotalSumByCategory');
         
     });
 

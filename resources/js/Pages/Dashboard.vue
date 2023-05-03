@@ -35,6 +35,9 @@
                         :stat="'Saved from ' + roundUpCount + ' RoundUps'"
                         svgIcon='<svg class="w-8 h-8 text-white" viewBox="0 0 28 28" fill="none"    xmlns="http://www.w3.org/2000/svg">    <path d="M6.99998 11.2H21L22.4 23.8H5.59998L6.99998 11.2Z" fill="currentColor"        stroke="currentColor" stroke-width="2" stroke-linejoin="round" />    <path        d="M9.79999 8.4C9.79999 6.08041 11.6804 4.2 14 4.2C16.3196 4.2 18.2 6.08041 18.2 8.4V12.6C18.2 14.9197 16.3196 16.8 14 16.8C11.6804 16.8 9.79999 14.9197 9.79999 12.6V8.4Z"        stroke="currentColor" stroke-width="2" />'
                     />
+                    <LeaderBoardWidget 
+                        :items="totalByCategory"
+                    />
 
                 </div>
             </div>
@@ -147,7 +150,8 @@ import { ref } from "vue";
 import ApiService from '@/api';
 import { onMounted } from 'vue';
 import { formatCurrency } from '@/formatters';
-import CounterWidget from '@/Components/CounterWidget.vue';
+import CounterWidget from '@/Components/DashboardItems/CounterWidget.vue';
+import LeaderBoardWidget from '@/Components/DashboardItems/LeaderBoardWidget.vue';
 
 interface User {
     name: string;
@@ -174,12 +178,14 @@ const netValue = ref();
 const accountsCount = ref();
 const totalRoundUp = ref();
 const roundUpCount = ref();
+const totalByCategory = ref();
 
 onMounted(async function() {
     const { transaction_data, transaction_count } = await api.sendRequest('transactions/total_spent', 'GET');
     const { merchant_count } = await api.sendRequest('transactions/new_merchants', 'GET');
     const { net_value, accounts_count } = await api.sendRequest('accounts/net_value', 'GET');
     const { total_roundup, round_up_count } = await api.sendRequest('transactions/total_roundup', 'GET');
+    const { total_by_category } = await api.sendRequest('transactions/total_by_category', 'GET');
 
     spentThisWeek.value = formatCurrency(transaction_data);
     transactionCount.value = transaction_count;
@@ -188,6 +194,8 @@ onMounted(async function() {
     accountsCount.value = accounts_count;
     roundUpCount.value = round_up_count;
     totalRoundUp.value = formatCurrency(total_roundup);
+    totalByCategory.value = total_by_category;
+    console.log(totalByCategory.value);
 })
 
 </script>
