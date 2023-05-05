@@ -4,20 +4,18 @@
 
         <div class="flex flex-col mt-3 sm:flex-row">
             <div class="flex">
-                <!-- <div class="relative">
+                <div class="relative">
                     <select
+                        v-model="size"
+                        :selected="size"
                         class="block w-full h-full px-4 py-2 pr-8 leading-tight text-gray-700 bg-white border border-gray-400 rounded-l appearance-none focus:outline-none focus:bg-white focus:border-gray-500">
+                        <option disabled>Page Size</option>
                         <option>5</option>
                         <option>10</option>
                         <option>20</option>
+                        <option>50</option>
                     </select>
-
-                    <div class="absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 pointer-events-none">
-                        <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                        </svg>
-                    </div>
-                </div> -->
+                </div>
 
                 <div class="relative">
                     <select
@@ -26,15 +24,23 @@
                         <option>Active</option>
                         <option>Inactive</option>
                     </select>
-
-                    <div class="absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 pointer-events-none">
-                        <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                        </svg>
-                    </div>
                 </div>
             </div>
 
+            <div class="flex">
+                <vue-tailwind-datepicker 
+                    placeholder="Date From"
+                    as-single 
+                    v-model="dateFromValue"
+                    :formatter="dateFormatter" />
+            </div>
+            <div class="flex">
+                <vue-tailwind-datepicker 
+                    placeholder="Date To"
+                    as-single 
+                    v-model="dateToValue"
+                    :formatter="dateFormatter" />
+            </div>
             <div class="relative block mt-2 sm:mt-0">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-2">
                     <svg viewBox="0 0 24 24" class="w-4 h-4 text-gray-500 fill-current">
@@ -143,7 +149,7 @@
                     </tbody>
                 </table>
                 <div class="flex flex-col items-center px-5 py-5 bg-white border-t xs:flex-row xs:justify-between">
-                    <span class="text-xs text-gray-900 xs:text-sm">Showing 1 to 4 of 50 Entries</span>
+                    <span class="text-xs text-gray-900 xs:text-sm">Showing {{ transactions?.length }} results</span>
 
                     <div class="inline-flex mt-2 xs:mt-0">
                         <button @click="getPrevPage"
@@ -168,6 +174,7 @@ import ApiService from '../../api/index';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { format } from 'date-fns';
+import VueTailwindDatepicker from 'vue-tailwind-datepicker';
 
 
 interface PageParams {
@@ -179,18 +186,29 @@ interface PageParams {
 export default defineComponent({
     components: {
         PrimaryButton,
-        SecondaryButton
+        SecondaryButton,
+        VueTailwindDatepicker
     },
     setup() {
-        const size = ref('25');
+        const size = ref('20');
         const prevPageKey = ref(null);
         const nextPageKey = ref(null);
         const urlKey = ref('transactions');
         const api = new ApiService();
         const transactions = ref<Transaction[]>();
+        const dateFromValue = ref();
+        const dateToValue = ref();
+        const dateFormatter = ref({
+            date: 'DD MMM YYYY',
+            month: 'MMM'
+        })
 
         async function getTransactions() {
-            let transactionData = await api.sendRequest('transactions', 'GET', { size: size.value as any });
+            let transactionData = await api.sendRequest('transactions', 'GET', { 
+                    size: size.value as any, 
+                    ...((dateFromValue.value && typeof dateFromValue.value[0] !== 'undefined') ? { 'dateTo': dateToValue.value[0] } : {}),
+                    ...((dateFromValue.value && typeof dateFromValue.value[0] !== 'undefined') ? { 'dateFrom': dateFromValue.value[0] } : {}),
+                });
             transactions.value = transactionData.data;
             nextPageKey.value = transactionData.page_links?.next;
             prevPageKey.value = transactionData.page_links?.prev;
@@ -198,7 +216,12 @@ export default defineComponent({
 
         async function getPrevPage() {
             if (prevPageKey.value !== null) {
-                let transactionData = await api.sendRequest('transactions', 'GET', { size: size.value as any, prev: prevPageKey.value })
+                let transactionData = await api.sendRequest('transactions', 'GET', { 
+                        size: size.value as any, 
+                        prev: prevPageKey.value, 
+                        ...((dateFromValue.value && typeof dateFromValue.value[0] !== 'undefined') ? { 'dateTo': dateToValue.value[0] } : {}),
+                        ...((dateFromValue.value && typeof dateFromValue.value[0] !== 'undefined') ? { 'dateFrom': dateFromValue.value[0] } : {}),
+                    })
 
                 transactions.value = transactionData.data;
                 nextPageKey.value = transactionData.page_links?.next;
@@ -208,18 +231,39 @@ export default defineComponent({
 
         async function getNextPage() {
             if (nextPageKey.value !== null) {
-                let transactionData = await api.sendRequest('transactions', 'GET', { size: size.value as any, next: nextPageKey.value })
+                let transactionData = await api.sendRequest('transactions', 'GET', {
+                        size: size.value as any,
+                        next: nextPageKey.value,
+                        ...((dateFromValue.value && typeof dateFromValue.value[0] !== 'undefined') ? { 'dateTo': dateToValue.value[0] } : {}),
+                        ...((dateFromValue.value && typeof dateFromValue.value[0] !== 'undefined') ? { 'dateFrom': dateFromValue.value[0] } : {}),
+                    })
 
-                console.log(transactionData);
                 transactions.value = transactionData.data;
                 nextPageKey.value = transactionData.page_links?.next;
                 prevPageKey.value = transactionData.page_links?.prev;
             }
         }
 
+        watch(size, () => {
+            getTransactions();
+        });
+
+        watch(dateFromValue, () => {
+            console.log(dateFromValue.value)
+            getTransactions();
+        });
+
+        watch(dateToValue, () => {
+            console.log(dateToValue.value)
+            getTransactions();
+        });
+
         return {
             transactions,
             size,
+            dateToValue,
+            dateFromValue,
+            dateFormatter,
             nextPageKey,
             prevPageKey,
             api,
