@@ -10,6 +10,7 @@ use App\Models\Transaction;
 use App\Http\UpApi\Transformers\TransactionTransformer;
 use App\Http\UpApi\Util;
 use Carbon\Exceptions\EndLessPeriodException;
+use DateTime;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,6 +31,17 @@ class TransactionController extends Controller
     {
         $query_params = $request->query();
         $request_params['page[size]'] = $query_params['size'] ?? 5;
+
+        if (isset($query_params['dateFrom'])) {
+            $datefrom = DateTime::createFromFormat("d M Y", $query_params['dateFrom']);
+            $datefrom->setTime(0,0,0);
+            $request_params['filter[since]'] = $datefrom->format(DateTime::RFC3339);
+        }
+        if (isset($query_params['dateTo'])) {
+            $dateto = DateTime::createFromFormat("d M Y", $query_params['dateTo']);
+            $dateto->setTime(23, 59, 59);
+            $request_params['filter[until]'] = $dateto->format(DateTime::RFC3339);
+        }
 
         if (isset($query_params['next'])) {
             $request_params['page[after]'] = $query_params['next'];
