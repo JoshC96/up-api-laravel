@@ -41,6 +41,17 @@ class ProfileController extends Controller
     }
 
     /**
+     * Update the user's profile information.
+     */
+    public function updateUpToken(ProfileUpdateRequest $request): RedirectResponse
+    {
+        $request->user()->up_bank_token = $request->get('up_bank_token');
+        $request->user()->save();
+
+        return Redirect::route('dashboard');
+    }
+
+    /**
      * Delete the user's account.
      */
     public function destroy(Request $request): RedirectResponse

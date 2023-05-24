@@ -2,7 +2,7 @@
     <Head title="Dashboard" />
 
     <AuthenticatedLayout>
-        <div>
+        <div v-if="$page.props.auth.user.up_bank_token">
             <div class="mt-4">
                 <div class="flex flex-wrap -mx-6">
 
@@ -140,12 +140,17 @@
                 </div>
             </div> -->
         </div>
+        <div v-else>
+            
+            <UpdateUpTokenForm/>
+
+        </div>
     </AuthenticatedLayout>
 </template>
 
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import TransactionList from '@/Components/Lists/TransactionList.vue';
 import { ref } from "vue";
 import ApiService from '@/api';
@@ -153,6 +158,7 @@ import { onMounted } from 'vue';
 import { formatCurrency } from '@/formatters';
 import CounterWidget from '@/Components/DashboardItems/CounterWidget.vue';
 import LeaderBoardWidget from '@/Components/DashboardItems/LeaderBoardWidget.vue';
+import UpdateUpTokenForm from './Profile/Partials/UpdateUpTokenForm.vue';
 
 interface User {
     name: string;
@@ -181,22 +187,26 @@ const totalRoundUp = ref();
 const roundUpCount = ref();
 const totalByCategory = ref();
 
-onMounted(async function() {
-    const { transaction_data, transaction_count } = await api.sendRequest('transactions/total_spent', 'GET');
-    const { merchant_count } = await api.sendRequest('transactions/new_merchants', 'GET');
-    const { net_value, accounts_count } = await api.sendRequest('accounts/net_value', 'GET');
-    const { total_roundup, round_up_count } = await api.sendRequest('transactions/total_roundup', 'GET');
-    const { total_by_category } = await api.sendRequest('transactions/total_by_category', 'GET');
+if(usePage().props.auth.user.up_bank_token) {
+    onMounted(async function () {
 
-    spentThisWeek.value = formatCurrency(transaction_data);
-    transactionCount.value = transaction_count;
-    newMerchants.value = merchant_count;
-    netValue.value = formatCurrency(net_value);
-    accountsCount.value = accounts_count;
-    roundUpCount.value = round_up_count;
-    totalRoundUp.value = formatCurrency(total_roundup);
-    totalByCategory.value = total_by_category;
-    console.log(totalByCategory.value);
-})
+        const { transaction_data, transaction_count } = await api.sendRequest('transactions/total_spent', 'GET');
+        const { merchant_count } = await api.sendRequest('transactions/new_merchants', 'GET');
+        const { net_value, accounts_count } = await api.sendRequest('accounts/net_value', 'GET');
+        const { total_roundup, round_up_count } = await api.sendRequest('transactions/total_roundup', 'GET');
+        const { total_by_category } = await api.sendRequest('transactions/total_by_category', 'GET');
+
+        spentThisWeek.value = formatCurrency(transaction_data);
+        transactionCount.value = transaction_count;
+        newMerchants.value = merchant_count;
+        netValue.value = formatCurrency(net_value);
+        accountsCount.value = accounts_count;
+        roundUpCount.value = round_up_count;
+        totalRoundUp.value = formatCurrency(total_roundup);
+        totalByCategory.value = total_by_category;
+        console.log(totalByCategory.value);
+    })
+}
+
 
 </script>

@@ -2,6 +2,7 @@
 
 namespace App\Http\UpApi;
 
+use App\Models\User;
 use App\Services\ApiClient;
 use Illuminate\Support\Facades\Http;
 
@@ -9,14 +10,14 @@ class UpApi extends ApiClient
 {
     protected $token;
 
-    public function __construct($token, $url = null, $body = null)
+    public function __construct(User $user, $url = null, $body = null)
     {
         $baseUrl = env('UP_API_URL');
         $url = $url ?? $baseUrl;
 
         parent::__construct($url, $body);
 
-        $this->token = $token;
+        $this->token = $user->up_bank_token;
     }
 
     /**
