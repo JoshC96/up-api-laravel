@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\Auth;
 
 class AccountTransformer
 {
+    public function __construct(public User $user)
+    {
+        $this->user = $user;
+    }
+
     public function transform(array $data): AccountCollection
     {
         $transformedData = [];
@@ -48,9 +53,7 @@ class AccountTransformer
         )->toDateTimeString();
 
 
-        $account->user_id = Auth::getUser() ? 
-            Auth::getUser()->id : 
-            User::where('email', 'josh.campbell4000@gmail.com')->first()->id;
+        $account->user_id = $this->user->id;
 
         $account->save();
 

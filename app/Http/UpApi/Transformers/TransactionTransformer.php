@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\Auth;
 
 class TransactionTransformer
 {
+    public function __construct(public User $user)
+    {
+        $this->user = $user;
+    }
+
     public function transform(array $data): TransactionCollection
     {
         $transformedData = [];
@@ -106,10 +111,7 @@ class TransactionTransformer
             $transaction->parent_category_id = $parent_category->remote_id;
         }
 
-        $transaction->user_id = Auth::getUser() ? 
-            Auth::getUser()->id : 
-            User::where('email', 'josh.campbell4000@gmail.com')->first()->id;
-
+        $transaction->user_id = $this->user->id;
         $transaction->save();
 
         return $transaction;

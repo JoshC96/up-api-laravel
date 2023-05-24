@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Auth;
 
 class CategoryTransformer
 {
+
+    public function __construct(public User $user)
+    {
+        $this->user = $user;
+    }
+    
     public function transform(array $data): CategoryCollection
     {
         $transformedData = [];
@@ -39,9 +45,7 @@ class CategoryTransformer
         $category->name = Arr::get($categoryData, 'attributes.name');
         $category->parent_id = Arr::get($categoryData, 'relationships.parent.data.id');
 
-        $category->user_id = Auth::getUser() ? 
-            Auth::getUser()->id : 
-            User::where('email', 'josh.campbell4000@gmail.com')->first()->id;
+        $category->user_id = $this->user->id;
 
         $category->save();
 

@@ -19,12 +19,12 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
         $query_params = $request->query();
+        $user = $request->user();
 
-        // $client = new UpApi(Auth::getUser()->up_bank_token);
-        $client = new UpApi(env('UP_TEST_TOKEN'));
+        $client = new UpApi($user);
         $raw_categories = $client->getCategories();
 
-        $transformer = new CategoryTransformer();
+        $transformer = new CategoryTransformer($user);
         $categories = $transformer->transform($raw_categories);
 
         return response()->json([

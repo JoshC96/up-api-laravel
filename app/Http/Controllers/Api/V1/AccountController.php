@@ -21,6 +21,7 @@ class AccountController extends Controller
     public function index(Request $request)
     {
         $query_params = $request->query();
+        $user = $request->user();
         $request_params['page[size]'] = $query_params['size'] ?? 5;
 
         if (isset($query_params['next'])) {
@@ -31,11 +32,10 @@ class AccountController extends Controller
             $request_params['page[before]'] = $query_params['prev'];
         }
 
-        // $client = new UpApi(Auth::getUser()->up_bank_token);
-        $client = new UpApi(env('UP_TEST_TOKEN'));
+        $client = new UpApi($user);
         $raw_accounts = $client->getAccounts($request_params);
 
-        $transformer = new AccountTransformer();
+        $transformer = new AccountTransformer($user);
         $accounts = $transformer->transform($raw_accounts);
 
         return response()->json([
@@ -52,9 +52,10 @@ class AccountController extends Controller
      */
     public function getNetValue(Request $request): JsonResponse
     {
+        $user = $request->user();
         $accounts = Account::query()
+            ->where('user_id', '=',  $user->id)
             ->get();
-        // ->where('user_id', '=',  $request->user()->id);
 
         $net_value = $accounts->sum('balance_base_unit_value');
 

@@ -9,6 +9,7 @@ use App\Http\UpApi\UpApi;
 use App\Models\Transaction;
 use App\Http\UpApi\Transformers\TransactionTransformer;
 use App\Http\UpApi\Util;
+use App\Jobs\FetchTransactionHistory;
 use Carbon\Exceptions\EndLessPeriodException;
 use DateTime;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -31,6 +32,7 @@ class TransactionController extends Controller
     {
         $query_params = $request->query();
         $request_params['page[size]'] = $query_params['size'] ?? 5;
+        $user = $request->user();
 
         if (isset($query_params['dateFrom'])) {
             $datefrom = DateTime::createFromFormat("d M Y", $query_params['dateFrom']);
@@ -51,17 +53,34 @@ class TransactionController extends Controller
             $request_params['page[before]'] = $query_params['prev'];
         }
 
-        // $client = new UpApi(Auth::getUser()->up_bank_token);
-        $client = new UpApi(env('UP_TEST_TOKEN'));
+        $client = new UpApi($user);
         $raw_transactions = $client->getTransactions($request_params);
 
-        $transformer = new TransactionTransformer();
+        $transformer = new TransactionTransformer($user);
         $transactions = $transformer->transform($raw_transactions);
 
         return response()->json([
-            'data' => $transactions, 
+            'data' => $transactions,
             'page_links' => Util::getPaginationKeys($raw_transactions['links']),
-            'count' => $transactions->count()
+            'count' => $transactions->count(),
+            'user' => $user->id
+        ]);
+    }
+
+
+    /**
+     * @param Request $request 
+     * @return void 
+     * @throws BindingResolutionException 
+     */
+    public function queueFetchTransactionHistory(Request $request)
+    {
+        $user = $request->user();
+        FetchTransactionHistory::dispatchSync($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Queued to fetch Transaction history'
         ]);
     }
 
@@ -77,14 +96,15 @@ class TransactionController extends Controller
         $now = Carbon::now();
         $weekStartDate = $now->startOfWeek()->format('Y-m-d H:i');
         $weekEndDate = $now->endOfWeek()->format('Y-m-d H:i');
+        $user = $request->user();
 
         $transactions = Transaction::query()
             ->whereBetween('remote_created_at', [$weekStartDate, $weekEndDate])
             ->where('description', 'not like', "%Round Up%")
             ->where('description', 'not like', "%Transfer to%")
             ->where('description', 'not like', "%Transfer from%")
-            ->where('amount_base_unit_value', '<', 0); // Spent money is always negative, money-in is positive and we don't want that here
-            // ->where('user_id', '=',  $request->user()->id);
+            ->where('amount_base_unit_value', '<', 0) // Spent money is always negative, money-in is positive and we don't want that here
+            ->where('user_id', '=',  $user->id);
 
         $total_spent = $transactions->sum('amount_base_unit_value');
 
@@ -93,7 +113,8 @@ class TransactionController extends Controller
             'date_start' => $weekStartDate,
             'date_end' => $weekEndDate,
             'transaction_data' => $total_spent,
-            'transaction_count' => $transactions->count()
+            'transaction_count' => $transactions->count(),
+            'user' => $user->id
         ]);
     }
 
@@ -108,23 +129,25 @@ class TransactionController extends Controller
         $now = Carbon::now();
         $weekStartDate = $now->startOfWeek()->format('Y-m-d H:i');
         $weekEndDate = $now->endOfWeek()->format('Y-m-d H:i');
+        $user = $request->user();
 
         $merchants = Transaction::query()
             ->select('description')
             ->whereBetween('remote_created_at', [$weekStartDate, $weekEndDate])
+            ->where('user_id', '=',  $user->id)
             ->where('description', 'not like', "%Round Up%")
             ->where('description', 'not like', "%Transfer to%")
             ->where('description', 'not like', "%Transfer from%")
             ->whereRaw('(SELECT COUNT(*) FROM transactions t WHERE t.description = transactions.description) = 0')
             ->get();
-        // ->where('user_id', '=',  $request->user()->id);
 
         return response()->json([
             'status' => 200,
             'date_start' => $weekStartDate,
             'date_end' => $weekEndDate,
             'merchant_data' => $merchants,
-            'merchant_count' => $merchants->count()
+            'merchant_count' => $merchants->count(),
+            'user' => $user->id
         ]);
     }
 
@@ -139,12 +162,13 @@ class TransactionController extends Controller
         $now = Carbon::now();
         $weekStartDate = $now->startOfWeek()->format('Y-m-d H:i');
         $weekEndDate = $now->endOfWeek()->format('Y-m-d H:i');
+        $user = $request->user();
 
         $transactions = Transaction::query()
             ->whereBetween('remote_created_at', [$weekStartDate, $weekEndDate])
             ->where('description', '=', "Round Up")
+            ->where('user_id', '=',  $user->id)
             ->get();
-        // ->where('user_id', '=',  $request->user()->id);
 
         $total_roundup = $transactions->sum('amount_base_unit_value');
 
@@ -153,7 +177,8 @@ class TransactionController extends Controller
             'date_start' => $weekStartDate,
             'date_end' => $weekEndDate,
             'total_roundup' => $total_roundup,
-            'round_up_count' => $transactions->count()
+            'round_up_count' => $transactions->count(),
+            'user' => $user->id
         ]);
     }
 
@@ -164,8 +189,11 @@ class TransactionController extends Controller
      */
     public function getTotalSumByCategory(Request $request): JsonResponse
     {
+        $user = $request->user();
+
         $transactions = Transaction::query()
             ->select('category_id', DB::raw('SUM(amount_base_unit_value) as total_amount'), DB::raw('COUNT(*) as transaction_count'))
+            ->where('user_id', '=',  $user->id)
             ->groupBy('category_id')
             ->orderBy('total_amount', 'asc')
             ->limit(5)
@@ -181,6 +209,7 @@ class TransactionController extends Controller
         return response()->json([
             'status' => 200,
             'total_by_category' => json_decode($transactions),
+            'user' => $user->id
         ]);
     }
 
